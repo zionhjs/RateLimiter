@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TokenBucket {
     public class Bucket{
-        // capacity of the b
+        // capacity of the Bucket
         int capacity;
-        // rate/sec
+        // tokenInsert/sec
         int rateCount;
         AtomicInteger curCount = new AtomicInteger(0);
 
@@ -21,8 +21,8 @@ public class TokenBucket {
 
         public void put(){
             if(curCount.get() < capacity){
-                System.out.println("current amount ==" + curCount.get() + ", I have more spaces for tokens");
-                curCount.addAndGet(rateCount);
+                System.out.println("current amount ==" + curCount.get() + ", I have tokens in the bucket for use");
+                curCount.addAndGet(Math.min(rateCount, capacity-curCount.get()));
             }
         }
 
@@ -45,21 +45,35 @@ public class TokenBucket {
         }, 0, 1, TimeUnit.SECONDS);
 
         // wait for a moment, wait till more token into the bucket
+        try{
+            Thread.sleep(6000);
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+
+        // simulate 10 Threads come in and take the tokens
         for(int i=0; i<10; i++){
             new Thread(() -> {
                 if(bucket.get()){
-                    System.out.println(Thread.currentThread() + " got the resources");
+                    System.out.println(Thread.currentThread() + " got the token!");
                 }else{
                     System.out.println(Thread.currentThread() + " got Rejected!");
                 }
             }).start();
         }
 
-        // wait and put token into the bucket
+        // wait for a moment, wait till more token into the bucket
+        try{
+            Thread.sleep(3000);
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+
+        // simulate 10 Threads come in and take the tokens
         for(int i=0; i<10; i++){
             new Thread(() -> {
                 if(bucket.get()){
-                    System.out.println(Thread.currentThread() + " got the resouces!");
+                    System.out.println(Thread.currentThread() + " got the token!");
                 }else{
                     System.out.println(Thread.currentThread() + " got rejected!");
                 }

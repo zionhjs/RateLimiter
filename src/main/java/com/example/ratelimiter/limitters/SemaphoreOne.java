@@ -13,6 +13,7 @@ public class SemaphoreOne {
             return;
         }
         System.out.println(Thread.currentThread().getName() + " executing! ");
+        // 直接call Thread 是获得并控制当前Thread
         Thread.sleep(500);
         semaphore.release();
     }
@@ -22,24 +23,28 @@ public class SemaphoreOne {
         timer.scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run(){
-                semaphore.release(20);
-                System.out.println("release locks");
+                semaphore.release(10);
+                System.out.println("released locks");
             }
         }, 1000, 1000);
 
         for(int i=0; i<10000; i++){
+            // let current Thread sleep
             try{
                 Thread.sleep(10);
             }catch (InterruptedException e){
                 e.printStackTrace();
             }
-            new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 try{
                     SemaphoreOne.bizMethod();
                 }catch (InterruptedException e){
                     e.printStackTrace();
                 }
-            }).start();
+            });
+            thread.start();
         }
     }
 }
+
+

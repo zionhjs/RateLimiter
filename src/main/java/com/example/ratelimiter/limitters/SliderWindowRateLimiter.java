@@ -6,10 +6,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SliderWindowRateLimiter implements Runnable {
+    // max visit/sec
     private final long maxVisitPerSecond;
+    // split sec into N block
     private final int block;
+    // the count/block
     private final AtomicLong[] countPerBlock;
+    // index of the moving of the window
     private volatile int index;
+    // total amount of the current count
     private AtomicLong allCount;
 
     public SliderWindowRateLimiter(int block, long maxVisitPerSecond){
@@ -50,7 +55,7 @@ public class SliderWindowRateLimiter implements Runnable {
 
     public static void main(String[] args){
         SliderWindowRateLimiter sliderWindowRateLimiter = new SliderWindowRateLimiter(10, 100);
-        // fixed rate limiter window
+        // fixed rate request to the limiter window -> this is just call the rum() / period(100ms now)
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(sliderWindowRateLimiter, 100, 100, TimeUnit.MILLISECONDS);
 
@@ -66,7 +71,7 @@ public class SliderWindowRateLimiter implements Runnable {
             }
         }).start();
 
-        // simulate different speed of the request-2
+        // simulate different speed of the request-2 -> two threads working on same RateLimiter -> now will exceeds the limit
         new Thread(() -> {
             while(true){
                 sliderWindowRateLimiter.visit();
